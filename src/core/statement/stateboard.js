@@ -1,0 +1,47 @@
+import { TOOL_WIDTH } from '../../constants'
+
+export default class StateBoard extends sving.Group {
+  constructor({ store, position = {} }) {
+    super()
+
+    this.store = store
+
+    this.x = position.x
+    this.y = position.y
+    this.active = false
+
+    this.initDrawLineTool()
+    this.initEvents()
+    this.hide()
+  }
+
+  initDrawLineTool() {
+    this.arrow = new sving.Img(
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAKmUlEQVR4Xu2dW+h2YxqHfw6Q0ISxPZFNkimEA/Epyi45sE9mhpMZTpCySSEUIeOAULaNfZQ4kRPS1JjmxJBwIo44ESdCSTbdY618+G/W/az7Wffzfs+16jtb9+a57uf61rve9b7vfztxQAAC6xLYDjYQgMD6BBCE3QGBDQggCNsDAgjCHoBAGQGuIGXciOqEAIJ0MmiWWUYAQcq4EdUJAQTpZNAss4wAgpRxI6oTAgjSyaBZZhkBBCnjRlQnBBCkk0GzzDICCFLGjahOCCBIJ4NmmWUEEKSMG1GdEECQTgbNMssIIEgZN6I6IYAgnQyaZZYRQJAybkR1QgBBOhk0yywjgCBl3IjqhACCdDJolllGAEHKuBHVCQEE6WTQLLOMAIKUcSOqEwII0smgWWYZAQQp40ZUJwQQpJNBs8wyAghSxo2oTgggSCeDZpllBBCkjBtRnRBAkE4GzTLLCCBIGTeiOiGAIJ0MmmWWEUCQMm5EdUIAQToZNMssI4AgZdyI6oQAgnQyaJZZRgBByrgR1QkBBOlk0CyzjACClHEjqhMCCJI/6EMkXSzpNEnHSHpf0r8lPSzpf/nt9d0BguTN39g/KOkSSTut0caPku6QdENei1RGkJw9YNxfkHTehPL3SrpqwnmcUoEAglSAuklKjxxjqtsk3bR8q1REkGX3QIkcY4f/kHTtsu1SDUGW2wNz5Bi7fEDS5cu1TCUEWWYPGOfnJZ0fUO4xSX8LyEOKCQQQZAKkmadEyjG28oykv8zsi/AJBBBkAqQZp9SQY2znxYnvgs1on1AEqbsH7K3ciJdV63X5iqQz6y6h7+wIUm/+teUYO39d0sn1ltF3ZgSpM/+l5Bi7f1PSljpL6TsrgsTPf2k5xhW8NXyWK35FHWdEkNjhZ8kxrsI+6Hi4pB9il9VvNgSJm322HONKPhok+SZuaf1mQpCY2bcix7iaTyUdIemLmOX1mwVB5s++NTnGFZkcJonJwlFIAEEKwQ1hrcoxrurrQRJ72cVRQABBCqCtiBzjyr4fJLEbeA4nAQRxAlsxObZenX2d194K5nAQQBAHrBWWY1ylPUy0h4ocEwkgyERQwXLYy50/+UrrHUlHOmPWOt0+lmIfT+GYQABBJkCqIId96emN6aX/f+aJku6UdKwzbq3T7QOO9kFHjk0IIMi0LRL1bpVdOS6QtFehIJ9IekTSSdPa3vAs+8EI+8g8xwYEEGTz7REtxwfD1aDkCvIvSfsNkpyxeeubnmFfurIvX3GsQwBBNt4aNeQYXy6VCmLxuw2SnBuws+3ru/Y1Xo41CCDI+tuilhwRgliOHSU9GvTVW7snsh+E4PgNAQRZe0vUlCNKkLFzuyeJ+BGHayTdgyG/JoAgv98RteWIFsTy3SfpioDNfaOk2wPybDMpEOTXo1xCjhqCWM67JF0XsDP5FcetICLILzCWkqOWIJb3Fkk3B0jCrzgOEBHkZxBLylFTEMt9/fCr8HM9uT/oZdvcPlLjEWR5OWoLYvmvlGS/Cj/3sHfJ/j43ySrH9y7I0leOca/Yx0bmPAeZsufsnS17h2vu8bSkv85NsqrxPQvyZNDgx4+P2BPyqccSglgvF0l6fHhmMrW3tc57avgrWHNyrGRsr4LYe/53B0ysRI4lXmJtvbSzJP1T0h9mrrfL5yQ9CrKrpC9nbhYLL5VjaUGs3qmSnpC0z4x125+Es/jPZuRYudAeBTlY0oczJzVHjgxBrKZ9WcpeVh4wY+2nSHptRvzKhfYoyPHDX5EtHdZcObIEsbpHSbL7icMKF9/dy6weBbFv8r1XuEEi5MgUxGofKsnemTq6gMHZkl4uiFvZkB4F2UPS5wUTi5IjWxCrv/9wJTnByeEgSR87Y1b69B4FsYHZ/6B/dkwuUo4WBLEe9hwkOW0ihy6fh/QqiO0J++XB3Sdsjmg5WhHE+th5kMReOm10GKs/TmC1zZ3SsyA2zOckXbjBVGvI0ZIg1ovtAXsmdPU6HIyRPXDs8uhdEBu6fQLWbljt377DLrD3+p8dPqrheUI+dRMt9SR9aj923sWSTh/+xsjekv4r6T+SbvUk2dbORZCcibYoSA6JxqsiSM6AECSHu7sqgriRhQQgSAjG+kkQpD7jtSogSA53d1UEcSMLCUCQEIz1kyBIfcZcQXIYh1RFkBCM7iRcQdzIcgIQJIc7guRwd1dFEDeykAAECcFYPwmC1GfMPUgO45CqCBKC0Z2EK4gbWU4AguRwR5Ac7u6qCOJGFhKAICEY6ydBkPqMuQfJYRxSFUFCMLqTcAVxI8sJQJAc7giSw91dFUHcyEICECQEY/0kCFKfMfcgOYxDqiJICEZ3Eq4gbmQ5AQiSwx1Bcri7qyKIG1lIAIKEYKyfBEHqM+YeJIdxSFUECcHoTsIVxI0sJwBBcrgjSA53d1UEcSMLCUCQEIz1kyBIfcbcg+QwDqmKICEY3Um4griR5QQgSA53BMnh7q6KIG5kIQEIEoKxfhIEqc+Ye5AcxiFVESQEozsJVxA3spwABMnhjiA53N1VEcSNLCQAQUIw1k+CIPUZcw+SwzikKoKEYHQn4QriRpYTgCA53BEkh7u7KoK4kYUEIEgIxvpJEKQ+Y+5BchiHVEWQEIzuJFxB3MhyAhAkhzuC5HB3V0UQN7KQAAQJwVg/CYLUZ8w9SA7jkKoIEoLRnYQriBtZTgCC5HBHkBzu7qoI4kYWEoAgIRjrJ0GQ+oy5B8lhHFIVQUIwupNwBXEjywlAkBzuCJLD3V0VQdzIQgIQJARj/SQIUp8x9yA5jEOqIkgIRncSriBuZDkBCJLDHUFyuLurIogbWUgAgoRgrJ8EQeoz5h4kh3FIVQQJwehOwhXEjSwnAEFyuCNIDnd3VQRxIwsJQJAQjPWTIEh9xtyD5DAOqYogIRjdSbiCuJHlBCBIDncEyeHuroogbmQhAQgSgrF+EgSpz5h7kBzGIVURJASjOwlXEDeynAAEyeGOIDnc3VURxI0sJOAoSW85M1nM284YTp9JAEFmAiwM317SV5J2mBj/raRdJX038XxOCyKAIEEgC9K8Kem4iXF27paJ53JaIAEECYTpTHWppIcmxlwm6eGJ53JaIAEECYRZkOpVSadvEmfnnFGQm5AAAggSAHFminMk3S3pwN/k+UjStZJempmf8BkEEGQGvMDQXSQdPvyztO8O/+xGniORAIIkwqd0+wQQpP0Z0WEiAQRJhE/p9gkgSPszosNEAgiSCJ/S7RNAkPZnRIeJBBAkET6l2yeAIO3PiA4TCSBIInxKt08AQdqfER0mEkCQRPiUbp8AgrQ/IzpMJIAgifAp3T4BBGl/RnSYSABBEuFTun0CCNL+jOgwkQCCJMKndPsEEKT9GdFhIgEESYRP6fYJIEj7M6LDRAIIkgif0u0TQJD2Z0SHiQQQJBE+pdsngCDtz4gOEwkgSCJ8SrdPAEHanxEdJhJAkET4lG6fAIK0PyM6TCSAIInwKd0+AQRpf0Z0mEgAQRLhU7p9AgjS/ozoMJEAgiTCp3T7BBCk/RnRYSIBBEmET+n2CSBI+zOiw0QCCJIIn9LtE0CQ9mdEh4kEECQRPqXbJ4Ag7c+IDhMJIEgifEq3TwBB2p8RHSYS+AmiR2nY30twWwAAAABJRU5ErkJggg=='
+    )
+    this.arrow.cursor = 'pointer'
+    this.arrow.setAttrs({
+      width: TOOL_WIDTH,
+      height: TOOL_WIDTH,
+    })
+    this.add(this.arrow)
+  }
+
+  initEvents() {
+    this.on('mousedown', () => {
+      if (this.active) {
+        this.store.dragNewTransition(this.parent)
+      }
+    })
+  }
+
+  show() {
+    this.active = true
+    this.arrow.opacity = 1
+  }
+
+  hide() {
+    this.active = false
+    this.arrow.opacity = 0
+  }
+}

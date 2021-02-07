@@ -1,0 +1,19 @@
+{
+  "name": "class-diagram",
+  "version": "0.0.1",
+  "description": "基于 SVG 的类图绘制组件",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ltp11/Class-Diagram.git"
+  },
+  "author": "tianpei liang",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ltp11/Class-Diagram/issues"
+  },
+  "homepage": "https://github.com/ltp11/Class-Diagram#readme"
+}
