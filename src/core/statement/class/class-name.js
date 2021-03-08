@@ -1,3 +1,5 @@
+import events from '../../events'
+
 import { TEXT_COLOR, CLASS_NAME_HEIGHT, TEXT_FONT, KEYCODE } from '../../../constants'
 
 import BaseGroup from '../base-group'
@@ -61,6 +63,8 @@ export default class ClassName extends BaseGroup {
 
       this.editInput.style.display = 'none'
       this.parent.updateData(dataModel)
+
+      events.$emit('xClass:autoSave', 'editClassName')
     })
   }
 

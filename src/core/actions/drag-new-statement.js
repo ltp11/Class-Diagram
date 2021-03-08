@@ -3,13 +3,12 @@ import ClassNode from '../statement/class-node'
 import NoteNode from '../statement/note-node'
 import BaseAction from './base-action'
 
-
 import { CLASS_WIDTH_MIN, CLASS_HEIGHT_MIN, NOTE_WIDTH_MIN, NOTE_HEIGHT_MIN } from '../../constants'
 
 //误操作误差范围 拖动距离小于15px，则视为误操作
 const limit = 15
 
-export default class DragNewStatement extends BaseAction{
+export default class DragNewStatement extends BaseAction {
   constructor({ store, done }) {
     super({ store })
     this.store = store
@@ -43,8 +42,6 @@ export default class DragNewStatement extends BaseAction{
     this.statement = statement
     this.startPoint = point
     this.store.add(this.statement)
-
-    events.$emit('xClass:autoSave')
   }
 
   setMouseMove(point) {
@@ -60,6 +57,8 @@ export default class DragNewStatement extends BaseAction{
     }
     const statementDataModel = this.statement.exportData()
     this.destory(statementDataModel)
+
+    events.$emit('xClass:autoSave', 'dragNewStatement')
   }
 
   /**

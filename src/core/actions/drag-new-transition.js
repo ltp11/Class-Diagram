@@ -14,7 +14,7 @@ const CREATE_STATUS = {
 
 export default class DragNewTransition extends BaseAction {
   constructor({ store, fromState, toState = null, from, to = null, done }) {
-    super({store})
+    super({ store })
     this.store = store
     this.fromState = fromState
     this.toState = toState
@@ -99,7 +99,7 @@ export default class DragNewTransition extends BaseAction {
         }
         this.destory(transitionDataModel)
 
-        events.$emit('xClass:autoSave')
+        events.$emit('xClass:autoSave', 'createSelfTransition')
       } else {
         this.destory()
       }
@@ -145,7 +145,7 @@ export default class DragNewTransition extends BaseAction {
 
     if (isNote) {
       this.lineToOtherStatement(point, toState, 'NoteLink')
-      events.$emit('xClass:autoSave')
+      events.$emit('xClass:autoSave', 'lineToOtherNote')
       return
     }
 
@@ -153,7 +153,7 @@ export default class DragNewTransition extends BaseAction {
       if (relation) {
         this.lineToOtherStatement(point, toState, relation)
 
-        events.$emit('xClass:autoSave')
+        events.$emit('xClass:autoSave', 'lineToOtherClass')
       } else {
         this.destory()
       }
@@ -187,7 +187,7 @@ export default class DragNewTransition extends BaseAction {
       if (toState && relation) {
         this.lineToOtherStatement(point, toState, relation)
 
-        events.$emit('xClass:autoSave')
+        events.$emit('xClass:autoSave', 'lineToNewStatement')
       } else {
         this.destory()
       }

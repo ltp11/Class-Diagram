@@ -75,7 +75,7 @@ export default class DragTransitionEndpoints extends BaseAction {
         this.transition.updateFromPoint(from)
         this.transition.updateToPoint(to)
       }
-      events.$emit('xClass:autoSave')
+      events.$emit('xClass:autoSave', 'dragTransitionEndpoints')
     } else {
       this.transition[this.updatePointFunc](this.startPoint)
       this.transition.updateCa(this.originCA)

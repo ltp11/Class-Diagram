@@ -125,15 +125,12 @@ export default class ClassNode extends BaseGroup {
 
   initClick() {
     this.on('click', e => {
-      e.stopPropagation()
-
       if (this.store.workState === WORK_STATE.PAN_MULTI_STATEMENT || this.store.workState === WORK_STATE.AFTER_PAN_MULTI_STATEMENT) return
-      console.log('触发node click')
+
       this.store.setActiveNode(this)
     })
 
     this.on('dblclick', e => {
-      e.stopPropagation()
       events.$emit('xClass:editClass', this.dataModel, this)
       this.store.setActiveNode(this)
     })

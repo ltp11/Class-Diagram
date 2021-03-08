@@ -20,6 +20,13 @@
         @cancelAddNew="cancelAddNew"
         @createNewTransition="createNewTransition"
       />
+      <MenuBoard
+        :position="menuBoard.position"
+        :show="menuBoard.show"
+        :getData="getData"
+        @cancelAddNew="cancelAddNew"
+        @createNewStatement="createNewNode"
+      />
       <PropertyPanel />
       <KeyTips :isShowKeyTips.sync="isShowKeyTips" />
       <!-- <Overview
@@ -42,32 +49,22 @@ import { updateClassDiagram, getClassDiagramDetailByDiagramId, checkUpdateAuth }
 import { getParameterByName } from '../../x-ide/libs/utils'
 
 import ClassStore from './core/store.js'
-import ClassNode from './core/statement/class-node.js'
 
-import {
-  CLASS_WIDTH_MIN,
-  CLASS_HEIGHT_MIN,
-  KEYCODE,
-  SVG_WIDTH,
-  SVG_HEIGHT,
-  WORK_STATE,
-  ELEMENT_TYPE,
-} from './constants'
+import { CLASS_WIDTH_MIN, CLASS_HEIGHT_MIN, NOTE_WIDTH_MIN, NOTE_HEIGHT_MIN, SVG_WIDTH, SVG_HEIGHT, ELEMENT_TYPE } from './constants'
 
 import ToolBox from './toolbox/toolbox'
 import InsertBoard from '../contextmenu/insert-board'
 import RelationBoard from '../contextmenu/relation-board'
+import MenuBoard from '../contextmenu/menu-board'
 import PropertyPanel from '../propertypanel'
-import ClassDiagram from '../../x-ide/extend/class-diagram'
 import Overview from '../overview'
 import KeyTips from '../key-tips'
-
 import MultiProperty from '../../x-ide/extend/multi-property'
 
-const isProject = getParameterByName('projectId')
 window.stage = null
 window.store = null
 window.diagramData = {}
+const isProject = getParameterByName('projectId')
 
 export default {
   name: 'XClassDiagram',
@@ -75,6 +72,7 @@ export default {
     ToolBox,
     InsertBoard,
     RelationBoard,
+    MenuBoard,
     PropertyPanel,
     Overview,
     KeyTips,
@@ -108,6 +106,14 @@ export default {
         },
         done: () => {},
       },
+      menuBoard: {
+        show: false,
+        position: {
+          x: 800,
+          y: 400,
+        },
+        done: () => {},
+      },
     }
   },
   mounted() {
@@ -128,7 +134,7 @@ export default {
   methods: {
     initEvent() {
       events.$on('xClass:showInsertBoard', ({ origin, point, position, callback }) => {
-        // insertBoard vue组件的绝对定位
+        // insertBoard 组件的绝对定位
         const { scale } = window.store
         this.insertBoard.position = {
           x: point.x * scale + origin.x,
@@ -145,7 +151,7 @@ export default {
       })
 
       events.$on('xClass:showRelationBoard', ({ origin, point, position, callback }) => {
-        // relationBoard vue组件的绝对定位
+        // relationBoard 组件的绝对定位
         const { scale } = window.store
         this.relationBoard.position = {
           x: point.x * scale + origin.x,
@@ -161,27 +167,41 @@ export default {
         }
       })
 
+      events.$on('xClass:showMenuBoard', ({ origin, point, position, callback }) => {
+        // menuBoard 组件的绝对定位
+        const { scale } = window.store
+        this.menuBoard.position = {
+          x: point.x * scale + origin.x,
+          y: point.y * scale + origin.y,
+        }
+        this.menuBoard.svgPoint = point
+        this.menuBoard.newPos = position
+        this.menuBoard.show = true
+        this.menuBoard.done = statement => {
+          this.menuBoard.done = () => {}
+          this.menuBoard.show = false
+          callback(statement)
+        }
+      })
+
       events.$on('xClass:cancelAddNew', () => {
         this.cancelAddNew()
       })
 
       events.$on('xClass:autoSaveTip', tip => (this.tip = tip || ''))
 
-      events.$on('xClass:autoSave', () => {
+      events.$on('xClass:autoSave', saveSource => {
+        console.log('🚀 ~ file: index.vue ~ line 194 ~ events.$on ~ saveSource', saveSource)
+        window.store.adjustSize()
         this.update()
       })
+
+      events.$on('xClass:setDiagramMode', diagramMode => (this.diagramMode = diagramMode))
     },
     initStage() {
-      if (
-        isProject &&
-        ide.store.state.XWModelDiagramPo &&
-        ide.store.state.XWModelDiagramPo.DiagramId === ide.store.state.shareId
-      ) {
+      if (isProject && ide.store.state.XWModelDiagramPo && ide.store.state.XWModelDiagramPo.DiagramId === ide.store.state.shareId) {
         ide.store.state.dataVersion = ide.store.state.XWModelDiagramPo.DataVersion
-        diagramData =
-          ide.store.state.XWModelDiagramPo.ExtendJSONData === ''
-            ? {}
-            : JSON.parse(ide.store.state.XWModelDiagramPo.ExtendJSONData)
+        diagramData = ide.store.state.XWModelDiagramPo.ExtendJSONData === '' ? {} : JSON.parse(ide.store.state.XWModelDiagramPo.ExtendJSONData)
         const { x = 0, y = 0, diagramMode = 'domain', statementList = [], transitionList = [] } = diagramData
 
         this.diagramMode = diagramMode
@@ -196,14 +216,14 @@ export default {
           .then(res => {
             if (res.code === 0) {
               ide.store.state.dataVersion = res.XWModelDiagramPo.DataVersion
-              diagramData =
-                res.XWModelDiagramPo.ExtendJSONData === '' ? {} : JSON.parse(res.XWModelDiagramPo.ExtendJSONData)
+              diagramData = res.XWModelDiagramPo.ExtendJSONData === '' ? {} : JSON.parse(res.XWModelDiagramPo.ExtendJSONData)
               const { x = 0, y = 0, diagramMode = 'domain', statementList = [], transitionList = [] } = diagramData
 
               this.diagramMode = diagramMode
               stage = new sving.Stage('#svingRoot', SVG_WIDTH, SVG_HEIGHT)
               store = new ClassStore({ stage, x, y, diagramMode, statementList, transitionList })
               store.scale = ide.store.state.scale
+              store.adjustSize()
 
               stage.add(store)
             } else {
@@ -222,7 +242,6 @@ export default {
       window.addEventListener('message', receiveMessage, false)
 
       function receiveMessage(event) {
-        console.log('receiveMessage -> event.data.payload', event.data.payload)
         switch (event.data.type) {
           case 'xwatt-project:clickMenuItem:modelDiagram':
             // 选中图（刷新图）
@@ -238,9 +257,7 @@ export default {
               const propertyIndex = node.propertyList.findIndex(item => item.key === event.data.payload.UUId)
 
               node.propertyList.splice(propertyIndex, 1)
-              const propertyIndexData = node.dataModel.propertyList.findIndex(
-                item => item.key === event.data.payload.UUId
-              )
+              const propertyIndexData = node.dataModel.propertyList.findIndex(item => item.key === event.data.payload.UUId)
 
               node.dataModel.propertyList.splice(propertyIndexData, 1)
               node.updateData(node.dataModel)
@@ -250,9 +267,7 @@ export default {
               const operationIndex = node.operationList.findIndex(item => item.key === event.data.payload.UUId)
 
               node.operationList.splice(operationIndex, 1)
-              const operationIndexData = node.dataModel.operationList.findIndex(
-                item => item.key === event.data.payload.UUId
-              )
+              const operationIndexData = node.dataModel.operationList.findIndex(item => item.key === event.data.payload.UUId)
 
               node.dataModel.operationList.splice(operationIndexData, 1)
               node.updateData(node.dataModel)
@@ -267,10 +282,7 @@ export default {
             if (event.data.payload.Type === ELEMENT_TYPE.CLASS) {
               window.store.setActiveNodeByUUID(event.data.payload.UUId)
             }
-            if (
-              event.data.payload.Type === ELEMENT_TYPE.CLASS_PROPERTY ||
-              event.data.payload.Type === ELEMENT_TYPE.CLASS_OPERATION
-            ) {
+            if (event.data.payload.Type === ELEMENT_TYPE.CLASS_PROPERTY || event.data.payload.Type === ELEMENT_TYPE.CLASS_OPERATION) {
               window.store.setActiveNodeByUUID(event.data.payload.ParentId)
             }
             break
@@ -301,12 +313,36 @@ export default {
       const statement = store.addNewStatement(dataModel, type)
       this.insertBoard.done(statement, relation)
     },
+    createNewNode(type) {
+      const position = this.menuBoard.newPos
+      const dataModel = {
+        nodeName: type,
+        x: position.x,
+        y: position.y,
+      }
+
+      if (type === 'class') {
+        dataModel.width = CLASS_WIDTH_MIN
+        dataModel.height = CLASS_HEIGHT_MIN
+      }
+      if (type === 'note') {
+        dataModel.width = NOTE_WIDTH_MIN
+        dataModel.height = NOTE_HEIGHT_MIN
+        dataModel.text = '注释'
+      }
+
+      store.addNewStatement(dataModel, type)
+      this.menuBoard.done()
+
+      events.$emit('xClass:autoSave', 'menuCreateNewNode')
+    },
     createNewTransition(relation) {
       this.relationBoard.done(relation)
     },
     cancelAddNew() {
       this.insertBoard.done()
       this.relationBoard.done()
+      this.menuBoard.done()
     },
     getData() {
       return store.exportData()
@@ -361,12 +397,12 @@ export default {
       events.$emit('xClass:autoSaveTip', '保存中，请勿离开当前页面')
       const JSONData = JSON.stringify(store.exportData())
       const params = { JSONData, name: this.name, diagramId: this.id }
-      console.log('自动保存数据啦')
       updateClassDiagram(params)
         .then(res => {
           if (res.code === 0) {
             ide.store.state.dataVersion = res.XWModelDiagramPo.DataVersion
             events.$emit('xClass:autoSaveTip', '保存成功')
+            ide.store.emitUpdateDiagram()
           } else if (res.code === 101 || res.code === 102) {
             events.$emit('xClass:autoSaveTip', '')
             if (res.code === 101) {
@@ -386,8 +422,7 @@ export default {
             }
 
             ide.store.state.dataVersion = res.XWModelDiagramPo.DataVersion
-            diagramData =
-              res.XWModelDiagramPo.ExtendJSONData === '' ? {} : JSON.parse(res.XWModelDiagramPo.ExtendJSONData)
+            diagramData = res.XWModelDiagramPo.ExtendJSONData === '' ? {} : JSON.parse(res.XWModelDiagramPo.ExtendJSONData)
             const { x = 0, y = 0, diagramMode = 'domain', statementList = [], transitionList = [] } = diagramData
 
             this.diagramMode = diagramMode
@@ -430,6 +465,7 @@ export default {
     position: relative;
     width: 100%;
     height: 100%;
+    overflow: auto;
     .overview {
       position: fixed;
       top: 150px;
@@ -439,8 +475,6 @@ export default {
       display: none;
       position: absolute;
       top: 0;
-      right: 0;
-      bottom: 0;
       left: 0;
     }
   }

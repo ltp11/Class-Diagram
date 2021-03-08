@@ -67,8 +67,6 @@ export default class AdjustStatementSize extends BaseAction {
     this.statement.adjustSize(width, height, this.originPoint, this.originPointIndex)
     // 再计算transition端点相对坐标
     this.updateLinesPoint(width, height)
-
-    events.$emit('xClass:autoSave')
   }
 
   setMouseUp() {
@@ -83,6 +81,8 @@ export default class AdjustStatementSize extends BaseAction {
         transition.updateToPoint(to)
       }
     })
+
+    events.$emit('xClass:autoSave', 'adjustSize')
   }
 
   updateLinesPoint(width, height) {

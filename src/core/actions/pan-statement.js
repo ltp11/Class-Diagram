@@ -59,7 +59,7 @@ export default class PanStatement extends BaseAction {
     this.afterPoint = new Vec2(this.statement.x, this.statement.y)
     const moveDistance = this.beforePoint.distance(this.afterPoint)
     if (moveDistance > 1) {
-      events.$emit('xClass:autoSave')
+      events.$emit('xClass:autoSave', 'PanStatement')
       setTimeout(() => {
         this.after()
       }, 100)

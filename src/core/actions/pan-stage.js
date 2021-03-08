@@ -30,5 +30,6 @@ export default class PanStage extends BaseAction {
   setMouseUp() {
     this.done()
     this.after()
+    window.store.adjustSize()
   }
 }

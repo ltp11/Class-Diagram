@@ -1,6 +1,6 @@
 // 画布大小
-export const SVG_HEIGHT = '100%'
-export const SVG_WIDTH = '100%'
+export const SVG_HEIGHT = window.innerHeight
+export const SVG_WIDTH = window.innerWidth
 
 // 文字样式
 export const TEXT_COLOR = '#2c3e50'
@@ -126,11 +126,11 @@ export const STATEMENT_SHAPE = [
 ]
 
 export const TYPE_LIST = [
+  { value: 'string' },
   { value: 'int' },
   { value: 'boolean' },
   { value: 'byte' },
   { value: 'char' },
-  { value: 'string' },
   { value: 'float' },
   { value: 'double' },
   { value: 'long' },
@@ -139,15 +139,7 @@ export const TYPE_LIST = [
 export const RETURN_LIST = [{ value: 'void' }, ...TYPE_LIST]
 export const MODIFIER_LIST = ['private', 'public', 'protected']
 
-export const RELATION_LIST = [
-  'Generalization',
-  'Association',
-  'Directed Association',
-  'Dependency',
-  'Aggregation',
-  'Composition',
-  'Realization',
-]
+export const RELATION_LIST = ['Generalization', 'Association', 'Directed Association', 'Dependency', 'Aggregation', 'Composition', 'Realization']
 export const RELATION_NAME_MAP = {
   Generalization: '泛化/Generalization',
   Association: '关联/Association',
@@ -161,20 +153,7 @@ export const RELATION_ICON_MAP = {}
 RELATION_LIST.forEach(relation => {
   RELATION_ICON_MAP[relation] = require(`../../../assets/icon/${relation}.svg`)
 })
-const STEREOTYPE_LIST = [
-  'access',
-  'bind',
-  'call',
-  'derive',
-  'friend',
-  'import',
-  'instanceOf',
-  'instantiate',
-  'powertype',
-  'refine',
-  'send',
-  'use',
-]
+const STEREOTYPE_LIST = ['access', 'bind', 'call', 'derive', 'friend', 'import', 'instanceOf', 'instantiate', 'powertype', 'refine', 'send', 'use']
 export const RELATION_STEREOTYPE_MAP = {
   Association: ['metaclass', 'subscribe'],
   'Directed Association': ['metaclass', 'subscribe'],

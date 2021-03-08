@@ -139,6 +139,7 @@ export default class Transition extends sving.Group {
     this.on('mousedown', e => {
       e.stopPropagation()
       this.isDrag = true
+      events.$emit('xClass:cancelAddNew')
     })
     this.on('mouseup', e => {
       this.isDrag = false
@@ -154,7 +155,7 @@ export default class Transition extends sving.Group {
         this.updateFromPoint(from)
         this.updateToPoint(to)
 
-        events.$emit('xClass:autoSave')
+        events.$emit('xClass:autoSave', 'moveTransition')
       }
     })
   }
@@ -575,7 +576,7 @@ export default class Transition extends sving.Group {
 
     this.updateDataModel(dataModel)
     this.setEndArrow()
-    events.$emit('xClass:autoSave')
+    events.$emit('xClass:autoSave', 'updateTransition')
   }
 
   setEndArrow() {

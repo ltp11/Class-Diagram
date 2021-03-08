@@ -63,6 +63,6 @@ export default class PanMultiStatement extends BaseAction {
     })
 
     this.after()
-    events.$emit('xClass:autoSave')
+    events.$emit('xClass:autoSave', 'PanMultiStatement')
   }
 }

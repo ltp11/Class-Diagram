@@ -1,7 +1,7 @@
 import Vec2 from 'vec2'
 import { getId, getPointByRectAndLine, cutLine, isNumInRange } from '../util'
 
-import { WORK_STATE, SIZE_POINT_WIDTH, ADJUST_POINT_INDEX } from '../../constants'
+import { WORK_STATE, SIZE_POINT_WIDTH, ADJUST_POINT_INDEX, MOUSE } from '../../constants'
 
 import events from '../events'
 
@@ -45,15 +45,31 @@ export default class BaseGroup extends sving.Group {
 
   initBaseClick() {
     this.on('mousedown', e => {
-      // e.stopPropagation()
+      this.which = e.which
     })
+
     this.on('mouseup', e => {
-      // e.stopPropagation()
+      this.which = e.which
+    })
+
+    this.on('click', e => {
+      e.stopPropagation()
+    })
+
+    this.on('dblclick', e => {
+      e.stopPropagation()
+    })
+
+    this.on('contextmenu', e => {
+      e.stopPropagation()
+      e.preventDefault()
     })
   }
 
   initDrag() {
     const bindDragStart = () => {
+      if (this.which !== MOUSE.LEFT) return
+
       if (
         this.store.selectedNodes.length > 1 &&
         this.store.workState !== WORK_STATE.SHIFT_MULTI_SELECTING &&
@@ -86,18 +102,18 @@ export default class BaseGroup extends sving.Group {
     }
 
     const bindDrag = (dx, dy) => {
+      if (this.which !== MOUSE.LEFT) return
+
       if (this.store.workState === WORK_STATE.PAN_MULTI_STATEMENT) {
         const { scale } = this.store
 
         this.store.mouseEvent.setMouseMove(dx / scale, dy / scale)
-        events.$emit('xClass:autoSave')
       }
 
       if (this.store.workState === WORK_STATE.PAN_STATEMENT) {
         const { scale } = this.store
 
         this.store.mouseEvent.setMouseMove(dx / scale, dy / scale)
-        events.$emit('xClass:autoSave')
       }
     }
 
@@ -233,10 +249,7 @@ export default class BaseGroup extends sving.Group {
       return new Vec2(point.x, y)
     }
     // 判断bottom边
-    if (
-      isNumInRange(point.x, [x, x + width]) &&
-      isNumInRange(point.y, [y + height - difference, y + height + difference])
-    ) {
+    if (isNumInRange(point.x, [x, x + width]) && isNumInRange(point.y, [y + height - difference, y + height + difference])) {
       return new Vec2(point.x, y + height)
     }
     // 判断left边
@@ -244,10 +257,7 @@ export default class BaseGroup extends sving.Group {
       return new Vec2(x, point.y)
     }
     // 判断right边
-    if (
-      isNumInRange(point.x, [x + width - difference, x + width + difference]) &&
-      isNumInRange(point.y, [y, y + height])
-    ) {
+    if (isNumInRange(point.x, [x + width - difference, x + width + difference]) && isNumInRange(point.y, [y, y + height])) {
       return new Vec2(x + width, point.y)
     }
     return null

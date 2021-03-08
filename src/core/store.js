@@ -9,7 +9,6 @@ import { WORK_STATE, WINDOW_MOUSEEVENTS, MOUSE, KEYCODE, TOOL_WIDTH, ELEMENT_TYP
 import PanStage from './actions/pan-stage'
 import DragNewStatement from './actions/drag-new-statement.js'
 import DragNewTransition from './actions/drag-new-transition'
-import PanMultiStatement from './actions/pan-multi-statement'
 import DragMultiStateSelect from './actions/drag-multi-state-select'
 import Transition from './statement/transition'
 import ClassNode from './statement/class-node'
@@ -80,7 +79,6 @@ export default class ClassStore extends sving.Group {
       undoStack: this.undoStack,
       redoStack: this.redoStack,
     })
-    // events.$emit('xClass:autoSave')
   }
 
   clearStack() {
@@ -121,11 +119,20 @@ export default class ClassStore extends sving.Group {
   }
 
   initEvents() {
-    this._stage.el.oncontextmenu = () => {
+    this._stage.el.oncontextmenu = e => {
       this.setAllNormal()
+      startPoint = getStagePointPosition(this._stage, e)
+
+      events.$emit('xClass:showMenuBoard', {
+        point: startPoint,
+        origin: {
+          x: store.x,
+          y: store.y,
+        },
+        position: startPoint,
+        callback: () => {},
+      })
       events.$emit('xClass:hidePropertyPanel')
-      // events.$emit('xClass:hideInsertBoard')
-      // events.$emit('xsm:hideCustomizeContextMenu')
 
       return false
     }
@@ -133,13 +140,15 @@ export default class ClassStore extends sving.Group {
     let startPoint = null
 
     this._stage.el.onmousedown = e => {
+      if (e.which !== MOUSE.LEFT) return
+
       startPoint = getStagePointPosition(this._stage, e)
-      if (this.workState === WORK_STATE.DRAG_NEW_STATEMENT || this.workState === WORK_STATE.DRAG_NEW_TRANSITION) {
-        events.$emit('xClass:cancelAddNew')
-      }
+      events.$emit('xClass:cancelAddNew')
     }
 
     this._stage.el.onmouseup = e => {
+      if (e.which !== MOUSE.LEFT) return
+
       const endPoint = getStagePointPosition(this._stage, e)
       if (this.workState === WORK_STATE.SHIFT_MULTI_SELECTING) return
       if (startPoint && endPoint.distance(startPoint) < 1) {
@@ -151,7 +160,6 @@ export default class ClassStore extends sving.Group {
     window.onmousedown = e => {
       // 如果作用的元素不包含svg根元素则不绑定事件
       if (!e.path.includes(stageEl)) return
-      window.mousedownStore = this
 
       const point = getStagePointPosition(this._stage, e)
       if (e.which === MOUSE.LEFT && this.workState === WORK_STATE.PAN_STAGE) {
@@ -176,9 +184,7 @@ export default class ClassStore extends sving.Group {
             this.mouseEvent = null
             if (this.selectedNodes.length > 1) {
               this.workState = WORK_STATE.AFTER_PAN_MULTI_STATEMENT
-              console.log('触发1')
               events.$emit('xClass:openMultiProperty', this.selectedNodes)
-              console.log('触发2')
             } else {
               this.workState = WORK_STATE.NORMAL
             }
@@ -293,11 +299,7 @@ export default class ClassStore extends sving.Group {
       console.log('更新activeNode', this.activeNode, data)
       this.activeNode && this.activeNode.updateData(data)
 
-      events.$emit('xClass:autoSave')
-    })
-
-    events.$on('xsm:updateStoreFocus', focusState => {
-      this.focusState = focusState
+      events.$emit('xClass:autoSave', 'updateNode')
     })
 
     events.$on('xClass:removeElement', (elementId = null, callback) => {
@@ -315,12 +317,8 @@ export default class ClassStore extends sving.Group {
             this.removeElement(elementId)
           }
           callback && callback()
-          events.$emit('xClass:autoSave')
+          events.$emit('xClass:autoSave', 'removeNode')
         })
-    })
-
-    events.$on('xsm:updateColorList', colorList => {
-      this.colorList = colorList
     })
 
     events.$on('xClass:setMode', diagramMode => {
@@ -433,14 +431,12 @@ export default class ClassStore extends sving.Group {
   }
 
   setActiveNode(node) {
-    console.log('点按Node', this.workState)
     if (this.workState === WORK_STATE.SHIFT_MULTI_SELECTING) {
       if (node.isActive) {
         const index = this.selectedNodes.findIndex(state => state.id === node.id)
         if (index > -1) {
           this.selectedNodes.splice(index, 1)
           if (this.selectedNodes.length < 1) {
-            // ide.closeRightPanel()
             events.$emit('xClass:closeMultiProperty')
           }
         }
@@ -449,9 +445,7 @@ export default class ClassStore extends sving.Group {
         node.setActive(true)
         this.selectedNodes.push(node)
         if (this.selectedNodes.length > 1) {
-          console.log('触发1')
           events.$emit('xClass:openMultiProperty', this.selectedNodes)
-          console.log('触发2')
         }
       }
     } else {
@@ -696,5 +690,26 @@ export default class ClassStore extends sving.Group {
     })
 
     return apex
+  }
+
+  getSize() {
+    const gap = 200
+    const apex = this.getApex()
+    const width = apex.maxX - apex.minX + gap + (window.store.x > 0 ? window.store.x : 0)
+    const height = apex.maxY - apex.minY + gap + (window.store.y > 0 ? window.store.y : 0)
+
+    return { width, height }
+  }
+
+  adjustSize() {
+    const size = this.getSize()
+
+    window.stage.el.setAttribute('width', Math.max(1000, size.width, window.innerWidth))
+    window.stage.el.setAttribute('height', Math.max(1000, size.height, window.innerHeight))
+
+    const panLayer = document.querySelector('#pan_satge_layer')
+
+    panLayer.style.width = Math.max(1000, size.width, window.innerWidth) + 'px'
+    panLayer.style.height = Math.max(1000, size.height, window.innerHeight) + 'px'
   }
 }

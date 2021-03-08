@@ -81,7 +81,7 @@ export default class NoteNode extends BaseGroup {
         this.text = value
         this.dataModel.text = value
         this.updateData(this.dataModel)
-        events.$emit('xClass:autoSave')
+        events.$emit('xClass:autoSave', 'editNoteText')
       },
     })
     this.add(this.noteText)
@@ -89,13 +89,11 @@ export default class NoteNode extends BaseGroup {
 
   initClick() {
     this.on('click', e => {
-      e.stopPropagation()
       if (this.store.workState === WORK_STATE.PAN_MULTI_STATEMENT) return
       this.store.setActiveNode(this)
     })
 
     this.on('dblclick', e => {
-      e.stopPropagation()
       events.$emit('xClass:editNote', this.dataModel, this)
       this.store.setActiveNode(this)
     })

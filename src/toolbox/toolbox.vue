@@ -44,7 +44,6 @@ import events from '../core/events'
 import { cloneDeep } from 'lodash'
 
 import { STATEMENT_SHAPE } from '../constants'
-import { KEYCODE } from '../constants'
 
 export default {
   name: 'ToolBox',
@@ -57,7 +56,7 @@ export default {
       diagramMode: this.mode,
       undoable: false,
       redoable: false,
-      isAdmin: ide.store.state.isAdmin
+      isAdmin: ide.store.state.isAdmin,
     }
   },
   watch: {
@@ -66,7 +65,7 @@ export default {
     },
     diagramMode(diagramMode, old) {
       events.$emit('xClass:setMode', diagramMode)
-      old && events.$emit('xClass:autoSave')
+      // old && events.$emit('xClass:autoSave', 'updateDiagramMode')
     },
   },
   mounted() {
@@ -74,18 +73,6 @@ export default {
   },
   methods: {
     bindEvents() {
-      // console.log('window.store', window.store)
-      // document.onkeydown = e => {
-      //   if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.keyCode === KEYCODE.Z) {
-      //     this.redo()
-      //     return 
-      //   }
-
-      //   if ((e.metaKey || e.ctrlKey) && e.keyCode === KEYCODE.Z) {
-      //     this.undo()
-      //     return 
-      //   }
-      // }
       events.$on('xClass:stackchange', stack => {
         const { undoStack, redoStack } = stack
         const undoLen = undoStack.length
@@ -93,18 +80,18 @@ export default {
 
         this.undoable = undoLen > 0
         this.redoable = redoLen !== 0
-      });
+      })
     },
     undo() {
       const undoStack = store.getUndoStack()
       if (!undoStack || undoStack.length === 0) {
-        return 
+        return
       }
       const currentData = undoStack.pop()
       if (currentData) {
         const { action } = currentData
         let data = currentData.data.before
-        if (!data) return 
+        if (!data) return
         store.clearStage()
 
         store.x = data.x
@@ -114,18 +101,17 @@ export default {
 
         store.pushStack(action, cloneDeep(currentData.data), 'redo')
       }
-
     },
     redo() {
       const redoStack = store.getRedoStack()
       if (!redoStack || redoStack.length === 0) {
-        return 
+        return
       }
       const currentData = redoStack.pop()
       if (currentData) {
         const { action } = currentData
         let data = currentData.data.after
-        if (!data) return 
+        if (!data) return
         store.clearStage()
 
         store.x = data.x
@@ -148,7 +134,7 @@ export default {
         const content = e.target.result
         try {
           store.initRender(JSON.parse(content))
-          events.$emit('xClass:autoSave')
+          events.$emit('xClass:autoSave', 'importJson')
         } catch (e) {
           throw e
         }
@@ -206,7 +192,8 @@ export default {
         height: 25px;
       }
     }
-    .graph-item-redo, .graph-item-undo {
+    .graph-item-redo,
+    .graph-item-undo {
       font-size: 16px;
       cursor: pointer;
     }
